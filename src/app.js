@@ -39,22 +39,23 @@ function renderBalance() {
   const spent = sumExpenses(state.expenses);
   const balance = $('balance');
 
+  $('budget-month-label').textContent = formatMonthLabel(state.month);
+
   if (resolved.amount === null) {
     balance.dataset.level = 'none';
     $('balance-amount').textContent = '—';
-    $('balance-detail').textContent = `使用 ${formatYen(spent)}`;
-    $('budget-note').textContent = 'この月の予算が未設定です。予算を設定してください。';
-    $('budget-edit').textContent = '予算を設定';
+    $('balance-detail').textContent = `予算が未設定です（タップして設定）／ 使用 ${formatYen(spent)}`;
+    $('budget-note').textContent = 'この月の予算が未設定です。';
     return;
   }
 
+  const inherited = resolved.source === 'inherited';
   balance.dataset.level = levelOf(resolved.amount, spent);
   $('balance-amount').textContent = formatYen(remaining(resolved.amount, spent));
-  $('balance-detail').textContent = `予算 ${formatYen(resolved.amount)} − 使用 ${formatYen(spent)}`;
-  $('budget-note').textContent = resolved.source === 'inherited'
+  $('balance-detail').textContent = `予算 ${formatYen(resolved.amount)}${inherited ? '（引継）' : ''} − 使用 ${formatYen(spent)}`;
+  $('budget-note').textContent = inherited
     ? `${formatMonthLabel(resolved.from)}の設定を引き継いで表示中（支出を追加すると保存されます）`
     : '';
-  $('budget-edit').textContent = '予算を変更';
 }
 
 function renderCalendarSection() {
@@ -134,7 +135,7 @@ function render() {
 async function go(month) {
   state.month = month;
   state.selectedDate = month === currentMonth() ? toLocalDateString(new Date()) : null;
-  closeBudgetForm();
+  closeMenu();
   resetExpenseForm();
   await load();
   render();
@@ -146,20 +147,28 @@ function selectDate(date) {
   render();
 }
 
-// ---- 予算 ----
+// ---- メニュー・予算 ----
 
-function openBudgetForm() {
+function openMenu({ focusBudget = false } = {}) {
   const resolved = resolveBudget(state.budgets, state.month);
   $('budget-input').value = resolved.amount ?? '';
   $('budget-error').textContent = '';
-  $('budget-form').hidden = false;
-  $('budget-edit').hidden = true;
-  $('budget-input').focus();
+  $('delete-msg').textContent = '';
+  $('menu').hidden = false;
+  $('menu-backdrop').hidden = false;
+  $('menu-btn').setAttribute('aria-expanded', 'true');
+  if (focusBudget) $('budget-input').focus();
 }
 
-function closeBudgetForm() {
-  $('budget-form').hidden = true;
-  $('budget-edit').hidden = false;
+function closeMenu() {
+  $('menu').hidden = true;
+  $('menu-backdrop').hidden = true;
+  $('menu-btn').setAttribute('aria-expanded', 'false');
+}
+
+function toggleMenu() {
+  if ($('menu').hidden) openMenu();
+  else closeMenu();
 }
 
 async function submitBudget(event) {
@@ -171,31 +180,35 @@ async function submitBudget(event) {
     return;
   }
   await setBudget(LEDGER_ID, state.month, amount);
-  closeBudgetForm();
+  closeMenu();
   await load();
   render();
 }
 
 // ---- 支出の追加・編集・削除 ----
 
+// 追加モード: 日付欄・見出し・戻るボタンは隠す（日付はカレンダーで選んだ日）
 function resetExpenseForm() {
   state.editing = null;
   $('exp-date').value = state.selectedDate ?? '';
   $('exp-amount').value = '';
   $('exp-memo').value = '';
   $('exp-error').textContent = '';
-  $('form-title').textContent = '支出を追加';
+  $('exp-date-row').hidden = true;
+  $('form-title').hidden = true;
   $('exp-submit').textContent = '追加';
   $('exp-cancel').hidden = true;
 }
 
+// 編集モード: 日付を変えられるよう日付欄を出す
 function startEdit(expense) {
   state.editing = expense;
   $('exp-date').value = expense.date;
   $('exp-amount').value = String(expense.amount);
   $('exp-memo').value = expense.memo;
   $('exp-error').textContent = '';
-  $('form-title').textContent = '支出を編集';
+  $('exp-date-row').hidden = false;
+  $('form-title').hidden = false;
   $('exp-submit').textContent = '更新';
   $('exp-cancel').hidden = false;
   $('exp-amount').focus();
@@ -225,7 +238,7 @@ async function submitExpense(event) {
     if (err instanceof BudgetRequiredError) {
       // 予算の引き継ぎ元がない月: 先に予算入力へ誘導する（支出は保存していない）
       await go(err.month);
-      openBudgetForm();
+      openMenu({ focusBudget: true });
       $('budget-error').textContent = '先にこの月の予算を設定してから、支出を追加してください';
       return;
     }
@@ -260,15 +273,16 @@ async function main() {
   $('prev-month').addEventListener('click', () => go(addMonths(state.month, -1)).catch(showFatal));
   $('next-month').addEventListener('click', () => go(addMonths(state.month, 1)).catch(showFatal));
   $('this-month').addEventListener('click', () => go(currentMonth()).catch(showFatal));
-  $('budget-edit').addEventListener('click', openBudgetForm);
-  $('budget-cancel').addEventListener('click', closeBudgetForm);
+  $('menu-btn').addEventListener('click', toggleMenu);
+  $('menu-backdrop').addEventListener('click', closeMenu);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+  $('balance').addEventListener('click', () => openMenu({ focusBudget: true }));
   $('budget-form').addEventListener('submit', (e) => submitBudget(e).catch(showFatal));
   $('expense-form').addEventListener('submit', (e) => submitExpense(e).catch(showFatal));
   $('exp-cancel').addEventListener('click', resetExpenseForm);
 
-  const settings = initSettings({
-    ledgerId: LEDGER_ID,
-    onDataChanged: async () => { // インポート・削除の後に画面を作り直す
+  initSettings({
+    onDataChanged: async () => { // 過去データ削除の後に画面を作り直す
       resetExpenseForm();
       await load();
       render();
@@ -278,7 +292,6 @@ async function main() {
   resetExpenseForm();
   await load();
   render();
-  await settings.refreshLastBackup();
 }
 
 main().catch(showFatal);

@@ -11,6 +11,8 @@
 
 * { box-sizing: border-box; }
 
+html, body { height: 100%; }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -19,42 +21,91 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* 画面全体を縦に積み、カレンダーが余りの高さを受け持つ（通常はスクロールなしで収まる） */
 #app {
+  position: relative;
   max-width: 480px;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
-  padding: calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));
+  padding: calc(6px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 button {
   font: inherit;
-  min-height: 44px;
-  padding: 0 16px;
+  min-height: 40px;
+  padding: 0 14px;
   border: 0;
   border-radius: 10px;
   background: var(--text);
   color: #fff;
 }
 button.secondary { background: #e5e7eb; color: var(--text); }
-button.link { min-height: 0; padding: 0 4px; background: none; color: #2563eb; font-size: 0.85rem; }
-button[hidden], [hidden] { display: none !important; }
+button.danger { background: var(--red); }
+button.link { min-height: 0; padding: 0 4px; background: none; color: #2563eb; font-size: 0.72rem; line-height: 1.1; }
+[hidden] { display: none !important; }
 
-/* 月送り */
-.month-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.month-nav > button { width: 48px; padding: 0; font-size: 1.5rem; background: #e5e7eb; color: var(--text); }
-.month-title { flex: 1; display: flex; flex-direction: column; align-items: center; font-size: 1.15rem; font-weight: 600; }
+input {
+  font: inherit;
+  font-size: 16px; /* iOS Safari の自動ズーム防止 */
+  min-height: 40px;
+  min-width: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.note { margin: 0; font-size: 0.78rem; color: var(--gray); }
+.error { margin: 0; color: var(--red); font-size: 0.8rem; }
+.error:empty { display: none; }
+.note:empty { display: none; }
+
+/* トップバー */
+.topbar { display: flex; align-items: center; gap: 6px; }
+.icon-btn { width: 44px; padding: 0; font-size: 1.4rem; background: #e5e7eb; color: var(--text); }
+.month-title { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40px; font-size: 1.1rem; font-weight: 600; }
+
+/* メニュー（トップバー直下に重ねて表示） */
+.backdrop { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.25); }
+.menu {
+  position: absolute;
+  z-index: 11;
+  left: 10px;
+  right: 10px;
+  top: calc(52px + env(safe-area-inset-top));
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+.menu-title { margin: 0 0 6px; font-size: 0.85rem; font-weight: 600; }
+.frow-group { display: flex; flex-direction: column; gap: 4px; }
+
+/* ラベルと入力欄を横並びにした行 */
+.frow { display: flex; align-items: center; gap: 8px; }
+.frow label { flex: 0 0 3em; font-size: 0.85rem; color: var(--gray); }
+.frow input { flex: 1; }
+.frow .unit { font-size: 0.85rem; color: var(--gray); }
 
 /* 残金 */
 .balance {
-  margin: 12px 0;
-  padding: 20px 16px;
-  border-radius: 16px;
+  padding: 8px 12px;
+  border-radius: 14px;
   background: var(--card);
   border: 2px solid var(--border);
   text-align: center;
 }
-.balance-caption { margin: 0; font-size: 0.95rem; color: var(--gray); }
-.balance-amount { margin: 4px 0; font-size: 3rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.balance-detail { margin: 0; font-size: 0.9rem; color: var(--gray); }
+.balance-main { margin: 0; display: flex; align-items: baseline; justify-content: center; gap: 10px; }
+.balance-caption { font-size: 0.9rem; color: var(--gray); }
+.balance-amount { font-size: 2.5rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.balance-detail { margin: 0; font-size: 0.82rem; color: var(--gray); }
 
 .balance[data-level="green"]  { border-color: var(--green);  background: #eaf7f0; }
 .balance[data-level="green"]  .balance-amount { color: var(--green); }
@@ -63,33 +114,17 @@ button[hidden], [hidden] { display: none !important; }
 .balance[data-level="red"]    { border-color: var(--red);    background: #fde8e8; }
 .balance[data-level="red"]    .balance-amount { color: var(--red); }
 
-/* 予算設定 */
-.budget { margin-bottom: 16px; }
-.note { margin: 0 0 8px; font-size: 0.85rem; color: var(--gray); min-height: 1.2em; }
-#budget-form { margin-top: 8px; padding: 12px; background: var(--card); border-radius: 12px; }
-#budget-form label { display: block; margin-bottom: 6px; font-size: 0.9rem; }
-.row { display: flex; gap: 8px; }
-.row input { flex: 1; min-width: 0; }
-input {
-  font: inherit;
-  font-size: 16px; /* iOS Safari の自動ズーム防止 */
-  min-height: 44px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-.error { margin: 6px 0 0; color: var(--red); font-size: 0.85rem; }
-
-/* カレンダー */
-.calendar { margin-bottom: 12px; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cal-head { text-align: center; font-size: 0.75rem; color: var(--gray); padding: 2px 0; }
-.cal-head.sun, .cal-day.sun { color: var(--red); }
+/* カレンダー: 余った高さを週の行で等分する */
+.calendar { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+#calendar { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
+.cal-heads { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-head { text-align: center; font-size: 0.72rem; color: var(--gray); }
+.cal-head.sun { color: var(--red); }
 .cal-head.sat { color: #2563eb; }
+.cal-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(34px, 1fr); gap: 3px; }
 .cal-cell {
-  position: relative;
-  min-height: 52px;
-  padding: 3px 2px;
+  min-height: 0;
+  padding: 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -99,11 +134,12 @@ input {
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.8rem;
+  line-height: 1.15;
 }
 .cal-cell.empty { background: none; border: 0; }
 .cal-cell.sun .cal-day { color: var(--red); }
 .cal-cell.sat .cal-day { color: #2563eb; }
-.cal-total { font-size: 0.65rem; font-variant-numeric: tabular-nums; min-height: 1em; letter-spacing: -0.02em; }
+.cal-total { font-size: 0.64rem; font-variant-numeric: tabular-nums; min-height: 1em; letter-spacing: -0.02em; }
 .cal-cell[data-level="1"] { background: #fff1d6; }
 .cal-cell[data-level="2"] { background: #ffd9a0; }
 .cal-cell[data-level="3"] { background: #ffb866; }
@@ -112,35 +148,13 @@ input {
 .cal-cell.selected { outline: 3px solid #2563eb; outline-offset: -1px; }
 
 /* 日別パネル */
-.day-panel { background: var(--card); border-radius: 12px; padding: 12px; }
-.day-panel h2 { margin: 0 0 8px; font-size: 1.05rem; }
-.day-panel h3 { margin: 12px 0 6px; font-size: 0.95rem; }
-.day-panel label { display: block; margin: 8px 0 4px; font-size: 0.85rem; color: var(--gray); }
-.day-panel input { width: 100%; }
-.expense-list { list-style: none; margin: 0; padding: 0; }
-.expense-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-.expense-list .memo { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.expense-list .amount { font-variant-numeric: tabular-nums; font-weight: 600; }
-.expense-list button { min-height: 36px; padding: 0 10px; font-size: 0.85rem; }
-.expense-list .empty-msg { color: var(--gray); font-size: 0.9rem; justify-content: center; }
-.actions { margin-top: 12px; }
-.actions button { flex: 1; }
-
-/* 設定 */
-.settings { margin-top: 16px; background: var(--card); border-radius: 12px; padding: 4px 12px 12px; }
-.settings summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
-.settings h3 { margin: 16px 0 6px; font-size: 0.95rem; }
-.settings label:not(.btn) { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--gray); }
-.btn {
-  flex: 1;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: var(--text);
-  color: #fff;
-}
-.btn.secondary { background: #e5e7eb; color: var(--text); }
-button.danger { background: var(--red); }
-.note.error { color: var(--red); }
+.day-panel { flex: 0 0 auto; padding: 8px 10px; background: var(--card); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+.day-panel h2 { margin: 0; font-size: 0.95rem; }
+.form-title { margin: 0; font-size: 0.85rem; font-weight: 600; }
+.day-panel form { display: flex; flex-direction: column; gap: 6px; }
+.expense-list { list-style: none; margin: 0; padding: 0; max-height: 84px; overflow-y: auto; }
+.expense-list li { display: flex; align-items: center; gap: 6px; min-height: 40px; border-bottom: 1px solid var(--border); }
+.expense-list .memo { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 0.9rem; }
+.expense-list .amount { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.9rem; }
+.expense-list button { min-height: 32px; padding: 0 10px; font-size: 0.8rem; }
+.expense-list .empty-msg { min-height: 28px; justify-content: center; color: var(--gray); font-size: 0.82rem; border-bottom: 0; }

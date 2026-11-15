@@ -13,15 +13,14 @@ function el(tag, className, text) {
 // totals: { 'YYYY-MM-DD': 合計 } / ref: 濃淡の基準額 / selectedDate, today: 'YYYY-MM-DD' | null
 export function renderCalendar(container, { month, totals, ref, selectedDate, today, onSelect }) {
   container.replaceChildren();
-  const grid = el('div', 'cal-grid');
-  grid.setAttribute('role', 'grid');
 
+  // 曜日行と週の行は別グリッドにして、週の行だけが残りの高さを等分する
+  const heads = el('div', 'cal-heads');
   WEEKDAYS.forEach((w, i) => {
-    const head = el('div', `cal-head${i === 0 ? ' sun' : i === 6 ? ' sat' : ''}`, w);
-    head.setAttribute('role', 'columnheader');
-    grid.append(head);
+    heads.append(el('div', `cal-head${i === 0 ? ' sun' : i === 6 ? ' sat' : ''}`, w));
   });
-
+  const grid = el('div', 'cal-body');
+  grid.setAttribute('role', 'grid');
   for (const week of buildMonthGrid(month)) {
     week.forEach((date, i) => {
       if (date === null) {
@@ -44,5 +43,5 @@ export function renderCalendar(container, { month, totals, ref, selectedDate, to
       grid.append(cell);
     });
   }
-  container.append(grid);
+  container.append(heads, grid);
 }

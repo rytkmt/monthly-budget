@@ -15,33 +15,46 @@
 </head>
 <body>
   <main id="app">
-    <nav class="month-nav" aria-label="月の移動">
-      <button type="button" id="prev-month" aria-label="前の月">‹</button>
+    <header class="topbar">
+      <button type="button" id="prev-month" class="icon-btn" aria-label="前の月">‹</button>
       <div class="month-title">
         <span id="month-label"></span>
         <button type="button" id="this-month" class="link" hidden>今月へ</button>
       </div>
-      <button type="button" id="next-month" aria-label="次の月">›</button>
-    </nav>
+      <button type="button" id="next-month" class="icon-btn" aria-label="次の月">›</button>
+      <button type="button" id="menu-btn" class="icon-btn" aria-label="メニュー" aria-expanded="false" aria-controls="menu">☰</button>
+    </header>
 
-    <section id="balance" class="balance" data-level="none" aria-live="polite">
-      <p class="balance-caption">残金</p>
-      <p id="balance-amount" class="balance-amount">—</p>
-      <p id="balance-detail" class="balance-detail"></p>
-    </section>
-
-    <section class="budget">
-      <p id="budget-note" class="note"></p>
-      <button type="button" id="budget-edit" class="secondary">予算を設定</button>
-      <form id="budget-form" hidden>
-        <label for="budget-input">この月の予算（円）</label>
-        <div class="row">
+    <div id="menu-backdrop" class="backdrop" hidden></div>
+    <div id="menu" class="menu" hidden>
+      <form id="budget-form" class="frow-group">
+        <p class="menu-title"><span id="budget-month-label"></span>の予算</p>
+        <div class="frow">
+          <label for="budget-input">予算</label>
           <input id="budget-input" type="number" inputmode="numeric" min="0" max="9999999" step="1" required>
+          <span class="unit">円</span>
           <button type="submit">保存</button>
-          <button type="button" id="budget-cancel" class="secondary">キャンセル</button>
         </div>
+        <p id="budget-note" class="note"></p>
         <p id="budget-error" class="error" role="alert"></p>
       </form>
+
+      <form id="delete-form" class="frow-group">
+        <p class="menu-title">過去データの削除</p>
+        <div class="frow">
+          <label for="del-month">〜まで</label>
+          <input id="del-month" type="month" required>
+          <button type="submit" class="danger">削除</button>
+        </div>
+        <p id="delete-msg" class="note"></p>
+      </form>
+
+      <p class="note">ホーム画面に追加して使ってください。Safari のタブのままだと、7日間開かないとデータが消えることがあります。</p>
+    </div>
+
+    <section id="balance" class="balance" data-level="none" aria-live="polite">
+      <p class="balance-main"><span class="balance-caption">残金</span><span id="balance-amount" class="balance-amount">—</span></p>
+      <p id="balance-detail" class="balance-detail"></p>
     </section>
 
     <section class="calendar" aria-label="カレンダー">
@@ -53,44 +66,25 @@
       <h2 id="day-title"></h2>
       <ul id="expense-list" class="expense-list"></ul>
       <form id="expense-form">
-        <h3 id="form-title">支出を追加</h3>
-        <label for="exp-date">日付</label>
-        <input id="exp-date" type="date" required>
-        <label for="exp-amount">金額（円）</label>
-        <input id="exp-amount" type="number" inputmode="numeric" min="1" max="9999999" step="1" required>
-        <label for="exp-memo">内容（20字まで）</label>
-        <input id="exp-memo" type="text" maxlength="20" autocomplete="off">
-        <div class="row actions">
+        <p id="form-title" class="form-title" hidden>支出を編集</p>
+        <div id="exp-date-row" class="frow" hidden>
+          <label for="exp-date">日付</label>
+          <input id="exp-date" type="date" required>
+        </div>
+        <div class="frow">
+          <label for="exp-amount">金額</label>
+          <input id="exp-amount" type="number" inputmode="numeric" min="1" max="9999999" step="1" required>
+          <span class="unit">円</span>
+        </div>
+        <div class="frow">
+          <label for="exp-memo">内容</label>
+          <input id="exp-memo" type="text" maxlength="20" autocomplete="off" placeholder="20字まで">
           <button type="submit" id="exp-submit">追加</button>
-          <button type="button" id="exp-cancel" class="secondary" hidden>キャンセル</button>
+          <button type="button" id="exp-cancel" class="secondary" hidden>戻る</button>
         </div>
         <p id="exp-error" class="error" role="alert"></p>
       </form>
     </section>
-
-    <details id="settings" class="settings">
-      <summary>設定・バックアップ</summary>
-      <p class="note">ブラウザのタブのまま使うと、7日間開かないとデータが消えることがあります。ホーム画面に追加して使い、定期的にバックアップしてください。</p>
-
-      <h3>バックアップ</h3>
-      <p id="last-backup" class="note"></p>
-      <div class="row actions">
-        <button type="button" id="export-btn">書き出す</button>
-        <label class="btn secondary" for="import-file">読み込む</label>
-        <input id="import-file" type="file" accept="application/json,.json" hidden>
-      </div>
-      <p id="backup-msg" class="note"></p>
-
-      <h3>過去データの削除</h3>
-      <form id="delete-form">
-        <label for="del-month">この月以前のデータを削除（前月まで）</label>
-        <div class="row">
-          <input id="del-month" type="month" required>
-          <button type="submit" class="danger">削除</button>
-        </div>
-        <p id="delete-msg" class="note"></p>
-      </form>
-    </details>
 
     <p id="fatal" class="error" role="alert" hidden></p>
   </main>
