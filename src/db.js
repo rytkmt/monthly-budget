@@ -1,6 +1,8 @@
 // IndexedDB データ層。全 API が ledgerId を必須にする（今回の帳簿は 'dining' のみ）。
 // ロジック（検証・削除計画・予算解決）は src/domain/ 側。ここは永続化のみを担う。
 
+import { resolveBudget } from './domain/budget.js';
+
 export const DB_NAME = 'monthly-budget';
 export const DB_VERSION = 1;
 
@@ -87,14 +89,51 @@ export async function listAllExpenses(ledgerId, db) {
   return wrap(d.transaction(EXPENSES).objectStore(EXPENSES).index('ledger_date').getAll(range));
 }
 
+// 同日の支出が登録順に並ぶよう、主キーを時刻順の接頭辞つきにする（索引の同値は主キー順になる）。
+const newId = () => `${Date.now().toString(36).padStart(9, '0')}-${crypto.randomUUID()}`;
+
 export async function addExpense(ledgerId, { date, amount, memo }, db) {
   requireLedger(ledgerId);
   const d = db ?? await openDb();
-  const record = { id: crypto.randomUUID(), ledgerId, date, amount, memo };
+  const record = { id: newId(), ledgerId, date, amount, memo };
   const tx = d.transaction(EXPENSES, 'readwrite');
   tx.objectStore(EXPENSES).add(record);
   await done(tx);
   return record;
+}
+
+export class BudgetRequiredError extends Error {
+  constructor(month) {
+    super(`budget is not set for ${month}`);
+    this.name = 'BudgetRequiredError';
+    this.month = month;
+  }
+}
+
+// 支出を追加する。その月に予算が未保存で引き継ぎ元があれば、同一トランザクションで実効予算を保存する。
+// 引き継ぎ元もなければ何も書かず BudgetRequiredError を投げる。
+// 戻り値: { record, carried }（carried: 予算を引き継いで保存したか）
+export async function addExpenseCarryBudget(ledgerId, { date, amount, memo }, db) {
+  requireLedger(ledgerId);
+  const d = db ?? await openDb();
+  const month = date.slice(0, 7);
+  const tx = d.transaction([BUDGETS, EXPENSES], 'readwrite');
+  const completion = done(tx);
+  completion.catch(() => {}); // abort 時の未処理 rejection を避ける（呼び出し側の await では reject される）
+  const bs = tx.objectStore(BUDGETS);
+  const range = IDBKeyRange.bound([ledgerId, ''], [ledgerId, '\uffff']);
+  const budgets = await wrap(bs.getAll(range));
+  const resolved = resolveBudget(budgets, month);
+  if (resolved.amount === null) {
+    tx.abort();
+    throw new BudgetRequiredError(month);
+  }
+  const carried = resolved.source === 'inherited';
+  if (carried) bs.put({ ledgerId, month, amount: resolved.amount });
+  const record = { id: newId(), ledgerId, date, amount, memo };
+  tx.objectStore(EXPENSES).add(record);
+  await completion;
+  return { record, carried };
 }
 
 // 他帳簿のレコードは更新しない。対象がなければ null。

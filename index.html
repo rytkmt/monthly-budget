@@ -38,6 +38,30 @@
       </form>
     </section>
 
+    <section class="calendar" aria-label="カレンダー">
+      <div id="calendar"></div>
+      <p id="calendar-hint" class="note">日付をタップすると、その日の支出を確認・追加できます。</p>
+    </section>
+
+    <section id="day-panel" class="day-panel" hidden>
+      <h2 id="day-title"></h2>
+      <ul id="expense-list" class="expense-list"></ul>
+      <form id="expense-form">
+        <h3 id="form-title">支出を追加</h3>
+        <label for="exp-date">日付</label>
+        <input id="exp-date" type="date" required>
+        <label for="exp-amount">金額（円）</label>
+        <input id="exp-amount" type="number" inputmode="numeric" min="1" max="9999999" step="1" required>
+        <label for="exp-memo">内容（20字まで）</label>
+        <input id="exp-memo" type="text" maxlength="20" autocomplete="off">
+        <div class="row actions">
+          <button type="submit" id="exp-submit">追加</button>
+          <button type="button" id="exp-cancel" class="secondary" hidden>キャンセル</button>
+        </div>
+        <p id="exp-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
     <p id="fatal" class="error" role="alert" hidden></p>
   </main>
   <script type="module" src="./src/app.js"></script>

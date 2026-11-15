@@ -79,3 +79,49 @@ input {
   border-radius: 10px;
 }
 .error { margin: 6px 0 0; color: var(--red); font-size: 0.85rem; }
+
+/* カレンダー */
+.calendar { margin-bottom: 12px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-head { text-align: center; font-size: 0.75rem; color: var(--gray); padding: 2px 0; }
+.cal-head.sun, .cal-day.sun { color: var(--red); }
+.cal-head.sat { color: #2563eb; }
+.cal-cell {
+  position: relative;
+  min-height: 52px;
+  padding: 3px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+.cal-cell.empty { background: none; border: 0; }
+.cal-cell.sun .cal-day { color: var(--red); }
+.cal-cell.sat .cal-day { color: #2563eb; }
+.cal-total { font-size: 0.65rem; font-variant-numeric: tabular-nums; min-height: 1em; letter-spacing: -0.02em; }
+.cal-cell[data-level="1"] { background: #fff1d6; }
+.cal-cell[data-level="2"] { background: #ffd9a0; }
+.cal-cell[data-level="3"] { background: #ffb866; }
+.cal-cell[data-level="4"] { background: #ff9140; font-weight: 700; }
+.cal-cell.today { border: 2px solid var(--text); }
+.cal-cell.selected { outline: 3px solid #2563eb; outline-offset: -1px; }
+
+/* 日別パネル */
+.day-panel { background: var(--card); border-radius: 12px; padding: 12px; }
+.day-panel h2 { margin: 0 0 8px; font-size: 1.05rem; }
+.day-panel h3 { margin: 12px 0 6px; font-size: 0.95rem; }
+.day-panel label { display: block; margin: 8px 0 4px; font-size: 0.85rem; color: var(--gray); }
+.day-panel input { width: 100%; }
+.expense-list { list-style: none; margin: 0; padding: 0; }
+.expense-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.expense-list .memo { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.expense-list .amount { font-variant-numeric: tabular-nums; font-weight: 600; }
+.expense-list button { min-height: 36px; padding: 0 10px; font-size: 0.85rem; }
+.expense-list .empty-msg { color: var(--gray); font-size: 0.9rem; justify-content: center; }
+.actions { margin-top: 12px; }
+.actions button { flex: 1; }
