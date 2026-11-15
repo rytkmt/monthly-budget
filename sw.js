@@ -1,7 +1,9 @@
 // アプリシェルのオフライン配信。
 // 更新方針: ネットワーク優先（成功したらキャッシュも更新）、失敗時のみキャッシュ。
+// GitHub Pages は max-age=600 を付けるため、ブラウザの HTTP キャッシュを経由すると古いファイルが
+// 最大10分返る。fetch は cache: 'no-cache'（毎回再検証）、プリキャッシュは cache: 'reload' で取得する。
 // 古い版が残り続けないよう、ファイル構成を変えたら CACHE_VERSION を上げる。
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `monthly-budget-${CACHE_VERSION}`;
 
 // すべて sw.js からの相対パス（GitHub Pages のサブパス配信でも動く）
@@ -27,7 +29,9 @@ const PRECACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()),
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE.map((path) => new Request(path, { cache: 'reload' }))))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -51,7 +55,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith((async () => {
     try {
-      const response = await fetch(request);
+      const response = await fetch(request.url, { cache: 'no-cache' });
       if (response.ok) {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));

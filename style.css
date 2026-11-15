@@ -7,6 +7,8 @@
   --card: #ffffff;
   --text: #1f2937;
   --border: #d9dce1;
+  /* 日付セルの幅（#app の左右余白 10px×2 と列の隙間 3px×6 を除いて 7 等分）。セルの高さはこれを超えない */
+  --cell-size: calc((min(100vw, 480px) - 38px) / 7);
 }
 
 * { box-sizing: border-box; }
@@ -94,6 +96,20 @@ input {
 .frow input { flex: 1; }
 .frow .unit { font-size: 0.85rem; color: var(--gray); }
 
+/* ボタン行（バックアップ） */
+.btn-row { display: flex; gap: 8px; }
+.btn-row > * { flex: 1; }
+.btn {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--text);
+  color: #fff;
+}
+.btn.secondary { background: #e5e7eb; color: var(--text); }
+
 /* 残金 */
 .balance {
   padding: 8px 12px;
@@ -114,14 +130,14 @@ input {
 .balance[data-level="red"]    { border-color: var(--red);    background: #fde8e8; }
 .balance[data-level="red"]    .balance-amount { color: var(--red); }
 
-/* カレンダー: 日付セルは最大 52px（ほぼ正方形）。余った高さは下の日別パネルに回す。足りないときだけ 34px まで縮む */
+/* カレンダー: 日付セルの高さは幅（--cell-size）を超えない。余った高さは下の日別パネルに回す。足りないときだけ 34px まで縮む */
 .calendar { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
 #calendar { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
 .cal-heads { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .cal-head { text-align: center; font-size: 0.72rem; color: var(--gray); }
 .cal-head.sun { color: var(--red); }
 .cal-head.sat { color: #2563eb; }
-.cal-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(34px, 52px); gap: 3px; }
+.cal-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(34px, var(--cell-size)); gap: 3px; }
 .cal-cell {
   min-height: 0;
   padding: 2px;

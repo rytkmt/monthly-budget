@@ -39,6 +39,17 @@
         <p id="budget-error" class="error" role="alert"></p>
       </form>
 
+      <div class="frow-group">
+        <p class="menu-title">バックアップ</p>
+        <p id="last-backup" class="note"></p>
+        <div class="btn-row">
+          <button type="button" id="export-btn">書き出す</button>
+          <label class="btn secondary" for="import-file">読み込む</label>
+          <input id="import-file" type="file" accept="application/json,.json" hidden>
+        </div>
+        <p id="backup-msg" class="note"></p>
+      </div>
+
       <form id="delete-form" class="frow-group">
         <p class="menu-title">過去データの削除</p>
         <div class="frow">

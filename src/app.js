@@ -281,8 +281,9 @@ async function main() {
   $('expense-form').addEventListener('submit', (e) => submitExpense(e).catch(showFatal));
   $('exp-cancel').addEventListener('click', resetExpenseForm);
 
-  initSettings({
-    onDataChanged: async () => { // 過去データ削除の後に画面を作り直す
+  const settings = initSettings({
+    ledgerId: LEDGER_ID,
+    onDataChanged: async () => { // インポート・過去データ削除の後に画面を作り直す
       resetExpenseForm();
       await load();
       render();
@@ -292,6 +293,7 @@ async function main() {
   resetExpenseForm();
   await load();
   render();
+  await settings.refreshLastBackup();
 }
 
 main().catch(showFatal);
