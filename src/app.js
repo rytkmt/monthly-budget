@@ -282,3 +282,8 @@ async function main() {
 }
 
 main().catch(showFatal);
+
+// オフライン起動用の Service Worker（失敗してもアプリ本体の動作には影響させない）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
