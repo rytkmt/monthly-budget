@@ -25,8 +25,8 @@ body {
 #app {
   position: relative;
   max-width: 480px;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh; /* 固定高にして、足りないときはカレンダーの行が縮む */
+  height: 100dvh;
   margin: 0 auto;
   padding: calc(6px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
   display: flex;
@@ -114,14 +114,14 @@ input {
 .balance[data-level="red"]    { border-color: var(--red);    background: #fde8e8; }
 .balance[data-level="red"]    .balance-amount { color: var(--red); }
 
-/* カレンダー: 余った高さを週の行で等分する */
-.calendar { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
+/* カレンダー: 日付セルは最大 52px（ほぼ正方形）。余った高さは下の日別パネルに回す。足りないときだけ 34px まで縮む */
+.calendar { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
 #calendar { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 3px; }
 .cal-heads { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .cal-head { text-align: center; font-size: 0.72rem; color: var(--gray); }
 .cal-head.sun { color: var(--red); }
 .cal-head.sat { color: #2563eb; }
-.cal-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(34px, 1fr); gap: 3px; }
+.cal-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(34px, 52px); gap: 3px; }
 .cal-cell {
   min-height: 0;
   padding: 2px;
@@ -148,11 +148,11 @@ input {
 .cal-cell.selected { outline: 3px solid #2563eb; outline-offset: -1px; }
 
 /* 日別パネル */
-.day-panel { flex: 0 0 auto; padding: 8px 10px; background: var(--card); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+.day-panel { flex: 1 0 auto; padding: 8px 10px; background: var(--card); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
 .day-panel h2 { margin: 0; font-size: 0.95rem; }
 .form-title { margin: 0; font-size: 0.85rem; font-weight: 600; }
 .day-panel form { display: flex; flex-direction: column; gap: 6px; }
-.expense-list { list-style: none; margin: 0; padding: 0; max-height: 84px; overflow-y: auto; }
+.expense-list { list-style: none; margin: 0; padding: 0; flex: 1 1 auto; min-height: 84px; overflow-y: auto; }
 .expense-list li { display: flex; align-items: center; gap: 6px; min-height: 40px; border-bottom: 1px solid var(--border); }
 .expense-list .memo { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 0.9rem; }
 .expense-list .amount { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.9rem; }
