@@ -109,6 +109,9 @@ input {
   color: #fff;
 }
 .btn.secondary { background: #e5e7eb; color: var(--text); }
+#export-btn { background: #2563eb; }
+.note.msg { font-size: 0.85rem; color: var(--text); font-weight: 600; }
+.note.msg.error { color: var(--red); }
 
 /* 残金 */
 .balance {

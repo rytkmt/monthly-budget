@@ -13,6 +13,8 @@ import { initSettings } from './ui/settings.js';
 const LEDGER_ID = 'dining'; // 今回は外食のみ。帳簿の切り替えUIは作らない。
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
+let settings = null; // initSettings の戻り値（main で設定）
+
 const $ = (id) => document.getElementById(id);
 
 const state = {
@@ -150,6 +152,7 @@ function selectDate(date) {
 // ---- メニュー・予算 ----
 
 function openMenu({ focusBudget = false } = {}) {
+  settings?.prepareExport().catch(() => {}); // 書き出しボタンを押したときにすぐ共有できるよう先に作る
   const resolved = resolveBudget(state.budgets, state.month);
   $('budget-input').value = resolved.amount ?? '';
   $('budget-error').textContent = '';
@@ -281,7 +284,7 @@ async function main() {
   $('expense-form').addEventListener('submit', (e) => submitExpense(e).catch(showFatal));
   $('exp-cancel').addEventListener('click', resetExpenseForm);
 
-  const settings = initSettings({
+  settings = initSettings({
     ledgerId: LEDGER_ID,
     onDataChanged: async () => { // インポート・過去データ削除の後に画面を作り直す
       resetExpenseForm();
@@ -294,6 +297,7 @@ async function main() {
   await load();
   render();
   await settings.refreshLastBackup();
+  await settings.prepareExport();
 }
 
 main().catch(showFatal);
