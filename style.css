@@ -125,3 +125,22 @@ input {
 .expense-list .empty-msg { color: var(--gray); font-size: 0.9rem; justify-content: center; }
 .actions { margin-top: 12px; }
 .actions button { flex: 1; }
+
+/* 設定 */
+.settings { margin-top: 16px; background: var(--card); border-radius: 12px; padding: 4px 12px 12px; }
+.settings summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; cursor: pointer; }
+.settings h3 { margin: 16px 0 6px; font-size: 0.95rem; }
+.settings label:not(.btn) { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--gray); }
+.btn {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--text);
+  color: #fff;
+}
+.btn.secondary { background: #e5e7eb; color: var(--text); }
+button.danger { background: var(--red); }
+.note.error { color: var(--red); }

@@ -62,6 +62,30 @@
       </form>
     </section>
 
+    <details id="settings" class="settings">
+      <summary>設定・バックアップ</summary>
+      <p class="note">ブラウザのタブのまま使うと、7日間開かないとデータが消えることがあります。ホーム画面に追加して使い、定期的にバックアップしてください。</p>
+
+      <h3>バックアップ</h3>
+      <p id="last-backup" class="note"></p>
+      <div class="row actions">
+        <button type="button" id="export-btn">書き出す</button>
+        <label class="btn secondary" for="import-file">読み込む</label>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <p id="backup-msg" class="note"></p>
+
+      <h3>過去データの削除</h3>
+      <form id="delete-form">
+        <label for="del-month">この月以前のデータを削除（前月まで）</label>
+        <div class="row">
+          <input id="del-month" type="month" required>
+          <button type="submit" class="danger">削除</button>
+        </div>
+        <p id="delete-msg" class="note"></p>
+      </form>
+    </details>
+
     <p id="fatal" class="error" role="alert" hidden></p>
   </main>
   <script type="module" src="./src/app.js"></script>

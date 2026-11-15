@@ -8,6 +8,7 @@ import {
   addExpenseCarryBudget, updateExpense, deleteExpense, BudgetRequiredError,
 } from './db.js';
 import { renderCalendar } from './ui/calendar.js';
+import { initSettings } from './ui/settings.js';
 
 const LEDGER_ID = 'dining'; // 今回は外食のみ。帳簿の切り替えUIは作らない。
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -265,9 +266,19 @@ async function main() {
   $('expense-form').addEventListener('submit', (e) => submitExpense(e).catch(showFatal));
   $('exp-cancel').addEventListener('click', resetExpenseForm);
 
+  const settings = initSettings({
+    ledgerId: LEDGER_ID,
+    onDataChanged: async () => { // インポート・削除の後に画面を作り直す
+      resetExpenseForm();
+      await load();
+      render();
+    },
+  });
+
   resetExpenseForm();
   await load();
   render();
+  await settings.refreshLastBackup();
 }
 
 main().catch(showFatal);
